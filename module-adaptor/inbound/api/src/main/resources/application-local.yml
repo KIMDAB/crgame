@@ -1,0 +1,22 @@
+cors:
+  pattern: /**
+  allowedOrigins: # todo: 실제 사용 도메인으로 변경
+    http://125.240.22.220
+  allowedHeaders:
+    Origin
+    Content-Type
+    Accept
+    responseType
+    Authorization
+    Cookie
+    x-xsrf-token
+    x-requested-with
+  exposedHeaders:
+    content-disposition
+  allowedMethods:
+    GET
+    POST
+    PUT
+    OPTIONS
+    DELETE
+    PATCH

@@ -1,0 +1,38 @@
+# ──────────────────────────────────────
+# 공통 설정
+# ──────────────────────────────────────
+spring:
+  data:
+    redis:
+      timeout: 3000
+
+---
+# ──────────────────────────────────────
+# local 프로파일
+# ──────────────────────────────────────
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+---
+# ──────────────────────────────────────
+# prod 프로파일
+# ──────────────────────────────────────
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  data:
+    redis:
+      host: cnr-valkey-cnr.c.aivencloud.com
+      port: 16632
+      password: ${CACHE_VALKEY_PASSWORD}
+      ssl:
+        enabled: true

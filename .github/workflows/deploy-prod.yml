@@ -1,0 +1,27 @@
+name: Deploy to Cloud VM (prod)
+
+on:
+  workflow_dispatch:  # manual trigger
+  # push:
+  #   branches: [ main ]   # uncomment to auto-deploy on push to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}   # optional, defaults to 22 if empty
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch --all
+            git reset --hard origin/main
+            cd docker
+            docker compose -f docker-compose.prod.yml up -d --build app nginx
+            docker image prune -f

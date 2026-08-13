@@ -1,0 +1,15 @@
+name: Deploy to Home Server
+
+on:
+  workflow_dispatch:  # 수동 트리거
+
+jobs:
+  deploy:
+    runs-on: macOS
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebuild and deploy app
+        working-directory: ./docker
+        run: docker-compose up -d --build app

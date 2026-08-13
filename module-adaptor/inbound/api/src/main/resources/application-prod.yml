@@ -1,0 +1,24 @@
+cors:
+  pattern: /**
+  allowedOrigins: # todo: 실제 사용 도메인으로 변경
+    https://xxx.com
+    https://www.xxx.com
+    https://admin.xxx.com
+  allowedHeaders:
+    Origin
+    Content-Type
+    Accept
+    responseType
+    Authorization
+    Cookie
+    x-xsrf-token
+    x-requested-with
+  exposedHeaders:
+    content-disposition
+  allowedMethods:
+    GET
+    POST
+    PUT
+    OPTIONS
+    DELETE
+    PATCH

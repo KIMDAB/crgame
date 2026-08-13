@@ -1,0 +1,4 @@
+---
+jwt:
+  private: ${JWT_PRIVATE_KEY}
+---

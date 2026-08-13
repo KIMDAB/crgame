@@ -1,0 +1,5 @@
+// module-utils: 유틸리티 모듈 스켈레톤
+// 필요한 의존성을 추가하세요.
+
+dependencies {
+}

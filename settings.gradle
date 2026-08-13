@@ -1,0 +1,29 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://repo.spring.io/snapshot' }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'cnr'
+
+include(
+    'module-bootstrap',
+    'module-utils',
+    'module-core:domain',
+    'module-core:application',
+    'module-core:port',
+    'module-adaptor',
+    'module-adaptor:inbound',
+    'module-adaptor:inbound:api',
+    'module-adaptor:inbound:security',
+    'module-adaptor:inbound:event',
+    'module-adaptor:inbound:batch',
+    'module-adaptor:outbound',
+    'module-adaptor:outbound:rds',
+    'module-adaptor:outbound:cache',
+    'module-adaptor:outbound:external',
+    'module-adaptor:outbound:external:foo-client',
+    'module-adaptor:outbound:external:kakao-oauth-client',
+    'module-adaptor:outbound:external:naver-map-client',
+)

@@ -1,0 +1,20 @@
+# Naver Cloud Platform — Maps API (API Gateway)
+# https://api.ncloud-docs.com/docs/ko/application-maps-overview
+naver:
+  map:
+    apigw:
+    # Static Map 이미지 생성
+      static-map: https://maps.apigw.ntruss.com/map-static/v2
+      # Directions 5 경로 계산
+      direction: https://maps.apigw.ntruss.com/map-direction/v1
+      # Directions 15 경로 계산
+      direction-15: https://maps.apigw.ntruss.com/map-direction-15/v1
+      geocode: https://maps.apigw.ntruss.com/map-geocode/v2
+
+      #=============위 객체는 임시로 추가===============
+
+      # Reverse Geocoding 도로명/지번 주소 조회
+      reverse-geocode: https://maps.apigw.ntruss.com/map-reversegeocode/v2
+    auth:
+      client-id: ${NAVER_MAP_CLIENT_ID:}
+      client-secret: ${NAVER_MAP_CLIENT_SECRET:}

@@ -1,0 +1,3 @@
+kakao:
+  oauth:
+    api-host: https://kapi.kakao.com
