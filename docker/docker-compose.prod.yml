@@ -30,6 +30,10 @@ services:
       JAVA_OPTS: "${JAVA_OPTS:--Xmx512m -Xms256m}"
       RDS_POSTGRES_USERNAME: ${RDS_POSTGRES_USERNAME}
       RDS_POSTGRES_PASSWORD: ${RDS_POSTGRES_PASSWORD}
+      # Overrides spring.jpa.hibernate.ddl-auto. Defaults to validate (as in yml).
+      # Set DDL_AUTO=update in .env for the FIRST boot to create tables on an
+      # empty DB, then remove it to return to validate.
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${DDL_AUTO:-validate}
       # Any non-empty value is fine until Valkey is actually wired up — the app
       # boots without connecting; only in-game features need a real Valkey later.
       CACHE_VALKEY_PASSWORD: ${CACHE_VALKEY_PASSWORD:-placeholder}
