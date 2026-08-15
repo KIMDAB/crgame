@@ -30,10 +30,12 @@ services:
       JAVA_OPTS: "${JAVA_OPTS:--Xmx512m -Xms256m}"
       RDS_POSTGRES_USERNAME: ${RDS_POSTGRES_USERNAME}
       RDS_POSTGRES_PASSWORD: ${RDS_POSTGRES_PASSWORD}
-      CACHE_VALKEY_PASSWORD: ${CACHE_VALKEY_PASSWORD}
+      # Any non-empty value is fine until Valkey is actually wired up — the app
+      # boots without connecting; only in-game features need a real Valkey later.
+      CACHE_VALKEY_PASSWORD: ${CACHE_VALKEY_PASSWORD:-placeholder}
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
-      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
-      KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI}
+      # Kakao uses the native-SDK flow: the client sends its access token and the
+      # backend calls /v2/user/me. No client-id / redirect-uri needed here.
     networks:
       - cnr-net
     restart: unless-stopped
