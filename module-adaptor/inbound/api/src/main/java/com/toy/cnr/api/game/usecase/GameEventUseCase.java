@@ -24,12 +24,13 @@ public class GameEventUseCase {
     /**
      * 게임 이벤트 채널을 구독합니다.
      *
-     * @param gameId  게임 세션 ID
-     * @param onEvent 이벤트 수신 시 호출되는 콜백
+     * @param gameId   게임 세션 ID
+     * @param playerId 구독하는 플레이어 ID
+     * @param onEvent  이벤트 수신 시 호출되는 콜백
      * @return 구독 해제에 사용할 subscriberId
      */
-    public String subscribeToGameEvents(String gameId, Consumer<GameEventResponse> onEvent) {
-        return gameEventService.subscribe(gameId, event ->
+    public String subscribeToGameEvents(String gameId, String playerId, Consumer<GameEventResponse> onEvent) {
+        return gameEventService.subscribe(gameId, playerId, event ->
             onEvent.accept(GameEventResponse.from(event))
         );
     }

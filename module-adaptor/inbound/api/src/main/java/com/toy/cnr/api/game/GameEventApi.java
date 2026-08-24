@@ -64,6 +64,7 @@ public class GameEventApi {
 
         var subscriberId = gameEventUseCase.subscribeToGameEvents(
             request.gameId(),
+            request.playerId(),
             event -> {
                 try {
                     emitter.send(

@@ -330,6 +330,9 @@ public class GameActionService {
     public CommandResult<Void> sendPing(SendPingCommand command) {
         var playerResult = inGamePlayerStore.getPlayer(command.gameId(), command.senderId());
         return ResultMapper.toCommandResult(playerResult).flatMap(playerDto -> {
+            if (!playerDto.role().equals(command.pingType().role().name())) {
+                return new CommandResult.BusinessError<>("PingType does not match player role");
+            }
             gameEventService.publish(new GameEvent.PingAlert(
                 command.gameId(),
                 command.senderId(),

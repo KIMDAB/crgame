@@ -522,7 +522,7 @@ class GameActionServiceTest {
     class SendPing {
 
         private final SendPingCommand command = new SendPingCommand(
-            GAME_ID, COPS_ID, PingType.COPS_ROBBER_SPOTTED, 37.5, 127.0
+            GAME_ID, COPS_ID, PingType.POLICE_ROBBER_SPOTTED, 37.5, 127.0
         );
 
         @Test
@@ -538,7 +538,7 @@ class GameActionServiceTest {
             verify(gameEventService).publish(captor.capture());
             assertEquals(GAME_ID, captor.getValue().gameId());
             assertEquals(COPS_ID, captor.getValue().senderId());
-            assertEquals(PingType.COPS_ROBBER_SPOTTED.name(), captor.getValue().pingType());
+            assertEquals(PingType.POLICE_ROBBER_SPOTTED.name(), captor.getValue().pingType());
         }
 
         @Test
@@ -548,6 +548,20 @@ class GameActionServiceTest {
                 .thenReturn(new RepositoryResult.NotFound<>("Player not found"));
 
             var result = gameActionService.sendPing(command);
+
+            assertInstanceOf(CommandResult.BusinessError.class, result);
+            verifyNoInteractions(gameEventService);
+        }
+
+        @Test
+        @DisplayName("[실패] 자신의 role과 다른 pingType 전송 → BusinessError, 이벤트 미발행")
+        void sendPing_roleMismatch() {
+            when(inGamePlayerStore.getPlayer(GAME_ID, COPS_ID)).thenReturn(new RepositoryResult.Found<>(copsDto()));
+
+            var mismatchCommand = new SendPingCommand(
+                GAME_ID, COPS_ID, PingType.THIEF_DANGER, 37.5, 127.0
+            );
+            var result = gameActionService.sendPing(mismatchCommand);
 
             assertInstanceOf(CommandResult.BusinessError.class, result);
             verifyNoInteractions(gameEventService);

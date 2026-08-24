@@ -1,18 +1,26 @@
 package com.toy.cnr.domain.game;
 
-/** 인게임 알람(핑) 타입 */
+/** 인게임 알람(핑) 타입 — 각 값은 해당 role 팀원에게만 전달된다. */
 public enum PingType {
-    // 도둑 전용
-    ROBBERS_COPS_SPOTTED,
-    ROBBERS_DANGER,
-    ROBBERS_GEM_FOUND,
-    ROBBERS_GATHER,
-    ROBBERS_RUN,
+    THIEF_COPS_SPOTTED(PlayerRole.THIEF),
+    THIEF_DANGER(PlayerRole.THIEF),
+    THIEF_GEM_FOUND(PlayerRole.THIEF),
+    THIEF_GATHER(PlayerRole.THIEF),
+    THIEF_RUN(PlayerRole.THIEF),
 
-    // 경찰 전용
-    COPS_ROBBER_SPOTTED,
-    COPS_GEM_FOUND,
-    COPS_SUPPORT_NEEDED,
-    COPS_ON_MY_WAY,
-    COPS_GATHER
+    POLICE_ROBBER_SPOTTED(PlayerRole.POLICE),
+    POLICE_GEM_FOUND(PlayerRole.POLICE),
+    POLICE_SUPPORT_NEEDED(PlayerRole.POLICE),
+    POLICE_ON_MY_WAY(PlayerRole.POLICE),
+    POLICE_GATHER(PlayerRole.POLICE);
+
+    private final PlayerRole role;
+
+    PingType(PlayerRole role) {
+        this.role = role;
+    }
+
+    public PlayerRole role() {
+        return role;
+    }
 }

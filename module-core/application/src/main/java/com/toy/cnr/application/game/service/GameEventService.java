@@ -2,8 +2,12 @@ package com.toy.cnr.application.game.service;
 
 import com.toy.cnr.application.game.mapper.GameEventMapper;
 import com.toy.cnr.domain.game.GameEvent;
+import com.toy.cnr.domain.game.PingType;
+import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.game.GameEventPublisher;
 import com.toy.cnr.port.game.GameEventSubscriber;
+import com.toy.cnr.port.game.InGamePlayerStore;
+import com.toy.cnr.port.game.model.InGamePlayerDto;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Consumer;
@@ -19,13 +23,16 @@ public class GameEventService {
 
     private final GameEventPublisher gameEventPublisher;
     private final GameEventSubscriber gameEventSubscriber;
+    private final InGamePlayerStore inGamePlayerStore;
 
     public GameEventService(
         GameEventPublisher gameEventPublisher,
-        GameEventSubscriber gameEventSubscriber
+        GameEventSubscriber gameEventSubscriber,
+        InGamePlayerStore inGamePlayerStore
     ) {
         this.gameEventPublisher = gameEventPublisher;
         this.gameEventSubscriber = gameEventSubscriber;
+        this.inGamePlayerStore = inGamePlayerStore;
     }
 
     /**
@@ -37,15 +44,29 @@ public class GameEventService {
 
     /**
      * 게임 이벤트 채널을 구독합니다.
+     * PING_ALERT 이벤트는 구독자의 role과 pingType이 일치하는 경우에만 전달됩니다.
      *
-     * @param gameId  게임 세션 ID
-     * @param onEvent 이벤트 수신 시 호출되는 콜백 (도메인 모델 전달)
+     * @param gameId   게임 세션 ID
+     * @param playerId 구독하는 플레이어 ID (role 기반 핑 필터링에 사용)
+     * @param onEvent  이벤트 수신 시 호출되는 콜백 (도메인 모델 전달)
      * @return 구독 해제에 사용할 subscriberId
      */
-    public String subscribe(String gameId, Consumer<GameEvent> onEvent) {
-        return gameEventSubscriber.subscribe(gameId, dto ->
-            onEvent.accept(GameEventMapper.toDomain(dto))
-        );
+    public String subscribe(String gameId, String playerId, Consumer<GameEvent> onEvent) {
+        var playerRole = resolvePlayerRole(gameId, playerId);
+
+        return gameEventSubscriber.subscribe(gameId, dto -> {
+            if ("PING_ALERT".equals(dto.type()) && playerRole != null) {
+                var pingTypeStr = dto.data().get("pingType");
+                if (pingTypeStr != null) {
+                    try {
+                        if (!PingType.valueOf(pingTypeStr).role().name().equals(playerRole)) {
+                            return;
+                        }
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            }
+            onEvent.accept(GameEventMapper.toDomain(dto));
+        });
     }
 
     /**
@@ -53,5 +74,13 @@ public class GameEventService {
      */
     public void unsubscribe(String subscriberId) {
         gameEventSubscriber.unsubscribe(subscriberId);
+    }
+
+    private String resolvePlayerRole(String gameId, String playerId) {
+        var result = inGamePlayerStore.getPlayer(gameId, playerId);
+        if (result instanceof RepositoryResult.Found<InGamePlayerDto> found) {
+            return found.data().role();
+        }
+        return null;
     }
 }
