@@ -3,8 +3,10 @@ package com.toy.cnr.application.game.service;
 import com.toy.cnr.domain.common.CommandResult;
 import com.toy.cnr.domain.game.*;
 import com.toy.cnr.port.common.RepositoryResult;
+import com.toy.cnr.port.game.ArrestEventStore;
 import com.toy.cnr.port.game.GameStateStore;
 import com.toy.cnr.port.game.InGamePlayerStore;
+import com.toy.cnr.port.game.model.ArrestEventDto;
 import com.toy.cnr.port.game.model.GameStateDto;
 import com.toy.cnr.port.game.model.InGamePlayerDto;
 import com.toy.cnr.port.room.model.RoomSettingsDto;
@@ -23,13 +25,17 @@ class GameStateServiceTest {
 
     private GameStateStore gameStateStore;
     private InGamePlayerStore inGamePlayerStore;
+    private ArrestEventStore arrestEventStore;
     private GameStateService gameStateService;
+
+    private static final String COPS_ID = "cops-001";
 
     @BeforeEach
     void setUp() {
         gameStateStore = Mockito.mock(GameStateStore.class);
         inGamePlayerStore = Mockito.mock(InGamePlayerStore.class);
-        gameStateService = new GameStateService(gameStateStore, inGamePlayerStore);
+        arrestEventStore = Mockito.mock(ArrestEventStore.class);
+        gameStateService = new GameStateService(gameStateStore, inGamePlayerStore, arrestEventStore);
     }
 
     // ────────────────────────────────────────────────────
@@ -125,11 +131,15 @@ class GameStateServiceTest {
     class GetPlayers {
 
         @Test
-        @DisplayName("[성공] 전체 플레이어 조회 → 역할/상태/통계 매핑 검증")
+        @DisplayName("[성공] 전체 플레이어 조회 → 역할/상태/통계 매핑, ARRESTED 플레이어 arrestedBy 합산")
         void getPlayers_success() {
             when(inGamePlayerStore.getAllPlayers(GAME_ID))
                 .thenReturn(new RepositoryResult.Found<>(
                     List.of(copsPlayerDto(), robberPlayerDto())
+                ));
+            when(arrestEventStore.findActiveArrest(GAME_ID, "robber-001"))
+                .thenReturn(new RepositoryResult.Found<>(
+                    new ArrestEventDto(1L, GAME_ID, "robber-001", COPS_ID, System.currentTimeMillis(), null)
                 ));
 
             var result = gameStateService.getPlayers(GAME_ID);
@@ -146,6 +156,8 @@ class GameStateServiceTest {
             var robber = players.stream().filter(p -> p.role() == PlayerRole.THIEF).findFirst().orElseThrow();
             assertEquals(PlayerStatus.ARRESTED, robber.status());
             assertEquals(3, robber.stats().gemsCollected());
+            assertEquals(COPS_ID, robber.arrestedBy());
+            assertNull(cops.arrestedBy());
         }
 
         @Test

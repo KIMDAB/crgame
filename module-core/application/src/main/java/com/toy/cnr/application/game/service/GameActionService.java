@@ -10,6 +10,7 @@ import com.toy.cnr.domain.room.RoomPlayer;
 import com.toy.cnr.domain.room.RoomSettings;
 import com.toy.cnr.domain.room.GeoPoint;
 import com.toy.cnr.port.game.*;
+import com.toy.cnr.port.game.model.ArrestEventDto;
 import com.toy.cnr.port.game.model.GameStateDto;
 import com.toy.cnr.port.game.model.InGamePlayerDto;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class GameActionService {
     private final GameRegistryStore gameRegistryStore;
     private final GameTimerService gameTimerService;
     private final GemSpawnService gemSpawnService;
+    private final ArrestEventStore arrestEventStore;
 
     public GameActionService(
         GameStateStore gameStateStore,
@@ -44,7 +46,8 @@ public class GameActionService {
         GameEventService gameEventService,
         GameRegistryStore gameRegistryStore,
         GameTimerService gameTimerService,
-        GemSpawnService gemSpawnService
+        GemSpawnService gemSpawnService,
+        ArrestEventStore arrestEventStore
     ) {
         this.gameStateStore = gameStateStore;
         this.inGamePlayerStore = inGamePlayerStore;
@@ -54,6 +57,7 @@ public class GameActionService {
         this.gameRegistryStore = gameRegistryStore;
         this.gameTimerService = gameTimerService;
         this.gemSpawnService = gemSpawnService;
+        this.arrestEventStore = arrestEventStore;
     }
 
     /**
@@ -159,12 +163,13 @@ public class GameActionService {
                         }
 
                         // Arrest: update robber status
+                        long now = System.currentTimeMillis();
                         var arrestedRobber = new InGamePlayerDto(
                             robberDto.playerId(), robberDto.playerName(),
                             robberDto.role(), PlayerStatus.ARRESTED.name(),
                             robberDto.arrestCount(), robberDto.gemsCollected(),
                             robberDto.rescueCount(), robberDto.escapeCount(),
-                            System.currentTimeMillis()
+                            now
                         );
                         inGamePlayerStore.updatePlayer(command.gameId(), arrestedRobber);
 
@@ -174,14 +179,19 @@ public class GameActionService {
                             copsDto.role(), copsDto.status(),
                             copsDto.arrestCount() + 1, copsDto.gemsCollected(),
                             copsDto.rescueCount(), copsDto.escapeCount(),
-                            System.currentTimeMillis()
+                            now
                         );
                         inGamePlayerStore.updatePlayer(command.gameId(), updatedCops);
+
+                        // Record arrest event in PostgreSQL ledger
+                        arrestEventStore.record(new ArrestEventDto(
+                            null, command.gameId(), command.robberId(), command.copsId(), now, null
+                        ));
 
                         // Publish event
                         gameEventService.publish(new GameEvent.PlayerArrested(
                             command.gameId(), command.copsId(), command.robberId(),
-                            System.currentTimeMillis()
+                            now
                         ));
 
                         // Check if all robbers arrested
@@ -229,12 +239,13 @@ public class GameActionService {
                         }
 
                         // Rescue: restore to ACTIVE
+                        long now = System.currentTimeMillis();
                         var rescuedActive = new InGamePlayerDto(
                             rescuedDto.playerId(), rescuedDto.playerName(),
                             rescuedDto.role(), PlayerStatus.ACTIVE.name(),
                             rescuedDto.arrestCount(), rescuedDto.gemsCollected(),
                             rescuedDto.rescueCount(), rescuedDto.escapeCount(),
-                            System.currentTimeMillis()
+                            now
                         );
                         inGamePlayerStore.updatePlayer(command.gameId(), rescuedActive);
 
@@ -244,13 +255,16 @@ public class GameActionService {
                             rescuerDto.role(), rescuerDto.status(),
                             rescuerDto.arrestCount(), rescuerDto.gemsCollected(),
                             rescuerDto.rescueCount() + 1, rescuerDto.escapeCount(),
-                            System.currentTimeMillis()
+                            now
                         );
                         inGamePlayerStore.updatePlayer(command.gameId(), updatedRescuer);
 
+                        // Mark arrest event as rescued in PostgreSQL ledger
+                        arrestEventStore.markRescued(command.gameId(), command.rescuedId(), now);
+
                         gameEventService.publish(new GameEvent.PlayerRescued(
                             command.gameId(), command.rescuerId(), command.rescuedId(),
-                            System.currentTimeMillis()
+                            now
                         ));
 
                         return new CommandResult.Success<>(null, "Rescued");

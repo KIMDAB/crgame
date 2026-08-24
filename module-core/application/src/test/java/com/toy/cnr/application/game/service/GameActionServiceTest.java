@@ -6,6 +6,7 @@ import com.toy.cnr.domain.room.RoomPlayer;
 import com.toy.cnr.domain.room.RoomSettings;
 import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.game.*;
+import com.toy.cnr.port.game.model.ArrestEventDto;
 import com.toy.cnr.port.game.model.GameStateDto;
 import com.toy.cnr.port.game.model.GemDto;
 import com.toy.cnr.port.game.model.InGamePlayerDto;
@@ -34,6 +35,7 @@ class GameActionServiceTest {
     private GameRegistryStore gameRegistryStore;
     private GameTimerService gameTimerService;
     private GemSpawnService gemSpawnService;
+    private ArrestEventStore arrestEventStore;
     private GameActionService gameActionService;
 
     @BeforeEach
@@ -46,9 +48,11 @@ class GameActionServiceTest {
         gameRegistryStore = Mockito.mock(GameRegistryStore.class);
         gameTimerService = Mockito.mock(GameTimerService.class);
         gemSpawnService = Mockito.mock(GemSpawnService.class);
+        arrestEventStore = Mockito.mock(ArrestEventStore.class);
         gameActionService = new GameActionService(
             gameStateStore, inGamePlayerStore, gemStore, locationStore,
-            gameEventService, gameRegistryStore, gameTimerService, gemSpawnService
+            gameEventService, gameRegistryStore, gameTimerService, gemSpawnService,
+            arrestEventStore
         );
     }
 
@@ -188,6 +192,9 @@ class GameActionServiceTest {
             when(inGamePlayerStore.getAllPlayers(GAME_ID)).thenReturn(new RepositoryResult.Found<>(
                 List.of(copsDto(), arrestedRobberDto(), activeRobber2)
             ));
+            when(arrestEventStore.record(any())).thenReturn(new RepositoryResult.Found<>(
+                new ArrestEventDto(1L, GAME_ID, ROBBER_ID, COPS_ID, System.currentTimeMillis(), null)
+            ));
 
             var result = gameActionService.arrest(command);
 
@@ -223,9 +230,11 @@ class GameActionServiceTest {
             when(locationStore.getDistanceMeters(GAME_ID, COPS_ID, ROBBER_ID))
                 .thenReturn(new RepositoryResult.Found<>(WITHIN_RANGE));
             when(inGamePlayerStore.updatePlayer(anyString(), any())).thenReturn(new RepositoryResult.Found<>(null));
-            // 도둑 1명만 존재하며 체포된 상태 → 모든 도둑 체포 완료
             when(inGamePlayerStore.getAllPlayers(GAME_ID)).thenReturn(new RepositoryResult.Found<>(
                 List.of(copsDto(), arrestedRobberDto())
+            ));
+            when(arrestEventStore.record(any())).thenReturn(new RepositoryResult.Found<>(
+                new ArrestEventDto(1L, GAME_ID, ROBBER_ID, COPS_ID, System.currentTimeMillis(), null)
             ));
 
             gameActionService.arrest(command);
@@ -335,6 +344,8 @@ class GameActionServiceTest {
             when(locationStore.getDistanceMeters(GAME_ID, RESCUER_ID, ROBBER_ID))
                 .thenReturn(new RepositoryResult.Found<>(WITHIN_RANGE));
             when(inGamePlayerStore.updatePlayer(anyString(), any())).thenReturn(new RepositoryResult.Found<>(null));
+            when(arrestEventStore.markRescued(anyString(), anyString(), anyLong()))
+                .thenReturn(new RepositoryResult.Found<>(null));
 
             var result = gameActionService.rescue(command);
 
