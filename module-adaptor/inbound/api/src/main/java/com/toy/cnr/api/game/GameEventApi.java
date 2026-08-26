@@ -34,15 +34,16 @@ public class GameEventApi {
             게임에서 발생하는 이벤트를 실시간으로 수신합니다.
             Server-Sent Events 스트림으로 응답되며, SSE `event:` 필드로 이벤트 타입을 구분합니다.
 
-            | event 타입              | 설명                          | data 주요 필드                        |
-            |------------------------|-------------------------------|--------------------------------------|
-            | PLAYER_ARRESTED        | 경찰이 도둑을 체포             | copsId, robberId                     |
-            | PLAYER_RESCUED         | 도둑이 체포된 동료를 구출      | rescuerId, rescuedId                 |
-            | PRISON_ESCAPE_WARNING  | 체포된 도둑이 감옥 범위 이탈   | playerId                             |
-            | ANNOUNCEMENT           | 방장 공지                     | senderId, message                    |
-            | GAME_STARTED           | 게임 시작                     | -                                    |
-            | GAME_ENDED             | 게임 종료                     | winnerRole                           |
-            | ROLE_ASSIGNED          | 인게임 역할 배정               | playerId, role (POLICE / THIEF)      |
+            | event 타입              | 수신 대상         | 설명                          | data 주요 필드                                                    |
+            |------------------------|-------------------|-------------------------------|------------------------------------------------------------------|
+            | PLAYER_ARRESTED        | 전체              | 경찰이 도둑을 체포             | copsId, robberId                                                 |
+            | PLAYER_RESCUED         | 전체              | 도둑이 체포된 동료를 구출      | rescuerId, rescuedId                                             |
+            | PRISON_ESCAPE_WARNING  | 경찰만            | 체포된 도둑이 감옥 범위 이탈   | playerId                                                         |
+            | ANNOUNCEMENT           | 전체              | 방장 공지                     | senderId, message                                                |
+            | GAME_STARTED           | 전체              | 게임 시작                     | -                                                                |
+            | GAME_ENDED             | 전체              | 게임 종료                     | winnerRole                                                       |
+            | ROLE_ASSIGNED          | 본인만            | 인게임 역할 배정               | playerId, role (POLICE / THIEF)                                  |
+            | PING_ALERT             | 같은 역할 팀원만  | 팀 내 위치 알람               | senderId, pingType, targetRole (POLICE/THIEF), latitude, longitude |
             """,
         responses = {
             @ApiResponse(

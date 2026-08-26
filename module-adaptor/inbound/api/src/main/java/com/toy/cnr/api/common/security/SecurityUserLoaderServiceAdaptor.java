@@ -74,7 +74,8 @@ public class SecurityUserLoaderServiceAdaptor implements SecurityUserLoaderServi
             true,
             true,
             Set.of(),
-            user
+            user,
+            user.nickname()
         );
     }
 }

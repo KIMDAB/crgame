@@ -24,6 +24,7 @@ public class AuthenticatedUser extends User implements Serializable {
     private static final String ACCOUNT_DISABLED_MESSAGE = "계정이 비활성화 상태입니다.";
 
     public final transient Object userInfo;
+    private final String nickname;
 
     protected AuthenticatedUser(
         String username,
@@ -32,10 +33,16 @@ public class AuthenticatedUser extends User implements Serializable {
         boolean credentialsNonExpired,
         boolean accountNonLocked,
         Collection<? extends GrantedAuthority> authorities,
-        Object userInfo
+        Object userInfo,
+        String nickname
     ) {
         super(username, password, enabled, true, credentialsNonExpired, accountNonLocked, authorities);
         this.userInfo = userInfo;
+        this.nickname = nickname;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     public static AuthenticatedUser of(
@@ -45,9 +52,10 @@ public class AuthenticatedUser extends User implements Serializable {
         boolean credentialsNonExpired,
         boolean accountNonLocked,
         Collection<? extends GrantedAuthority> authorities,
-        Object userInfo
+        Object userInfo,
+        String nickname
     ) {
-        return new AuthenticatedUser(username, password, enabled, credentialsNonExpired, accountNonLocked, authorities, userInfo);
+        return new AuthenticatedUser(username, password, enabled, credentialsNonExpired, accountNonLocked, authorities, userInfo, nickname);
     }
 
     public void validateAccountStatus() throws AuthenticationException {

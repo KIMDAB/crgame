@@ -28,6 +28,7 @@ public class AuthOAuthRegisterUseCase {
                 return BearerAuthenticationToken.authenticated(
                     accessToken.getToken(),
                     accessToken.getExpiresIn(),
+                    user.nickname(),
                     refreshToken.getToken(),
                     refreshToken.getExpiresIn()
                 );

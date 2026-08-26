@@ -50,6 +50,7 @@ public class OAuthAuthenticationProvider implements AuthenticationProvider {
         return BearerAuthenticationToken.authenticated(
             accessToken.getToken(),
             accessToken.getExpiresIn(),
+            user.getNickname(),
             refreshToken.getToken(),
             refreshToken.getExpiresIn()
         );

@@ -34,7 +34,8 @@ public class OAuthUserLoaderServiceAdaptor implements OAuthUserLoaderService {
                 true,
                 true,
                 Set.of(),
-                user
+                user,
+                user.nickname()
             );
             case CommandResult.ValidationError(var errors) -> {
                 log.error("Validation error during OAuth login, provider : {}, errors : {}", provider, errors);

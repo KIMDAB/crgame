@@ -104,6 +104,7 @@ public sealed interface GameEvent
         String gameId,
         String senderId,
         String pingType,
+        String targetRole,
         double latitude,
         double longitude,
         long timestamp

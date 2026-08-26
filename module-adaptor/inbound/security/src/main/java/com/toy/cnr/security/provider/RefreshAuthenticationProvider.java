@@ -60,6 +60,7 @@ public class RefreshAuthenticationProvider implements AuthenticationProvider {
             return BearerAuthenticationToken.authenticated(
                 accessToken.getToken(),
                 accessToken.getExpiresIn(),
+                user.getNickname(),
                 refreshToken,
                 refreshTokenExpiresIn
             );

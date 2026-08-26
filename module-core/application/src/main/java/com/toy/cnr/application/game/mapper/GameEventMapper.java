@@ -75,6 +75,7 @@ public final class GameEventMapper {
                 Map.of(
                     "senderId", e.senderId(),
                     "pingType", e.pingType(),
+                    "targetRole", e.targetRole(),
                     "latitude", String.valueOf(e.latitude()),
                     "longitude", String.valueOf(e.longitude())
                 ),
@@ -148,6 +149,7 @@ public final class GameEventMapper {
                 dto.gameId(),
                 dto.data().get("senderId"),
                 dto.data().get("pingType"),
+                dto.data().get("targetRole"),
                 Double.parseDouble(dto.data().get("latitude")),
                 Double.parseDouble(dto.data().get("longitude")),
                 dto.timestamp()

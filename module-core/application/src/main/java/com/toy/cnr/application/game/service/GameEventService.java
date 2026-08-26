@@ -44,10 +44,15 @@ public class GameEventService {
 
     /**
      * 게임 이벤트 채널을 구독합니다.
-     * PING_ALERT 이벤트는 구독자의 role과 pingType이 일치하는 경우에만 전달됩니다.
+     *
+     * <ul>
+     *   <li>ROLE_ASSIGNED — 본인 playerId 일치 시에만 전달</li>
+     *   <li>PRISON_ESCAPE_WARNING — POLICE 역할에게만 전달</li>
+     *   <li>PING_ALERT — 같은 역할(팀)에게만 전달</li>
+     * </ul>
      *
      * @param gameId   게임 세션 ID
-     * @param playerId 구독하는 플레이어 ID (role 기반 핑 필터링에 사용)
+     * @param playerId 구독하는 플레이어 ID
      * @param onEvent  이벤트 수신 시 호출되는 콜백 (도메인 모델 전달)
      * @return 구독 해제에 사용할 subscriberId
      */
@@ -55,15 +60,23 @@ public class GameEventService {
         var playerRole = resolvePlayerRole(gameId, playerId);
 
         return gameEventSubscriber.subscribe(gameId, dto -> {
-            if ("PING_ALERT".equals(dto.type()) && playerRole != null) {
-                var pingTypeStr = dto.data().get("pingType");
-                if (pingTypeStr != null) {
-                    try {
-                        if (!PingType.valueOf(pingTypeStr).role().name().equals(playerRole)) {
-                            return;
-                        }
-                    } catch (IllegalArgumentException ignored) {}
+            switch (dto.type()) {
+                case "ROLE_ASSIGNED" -> {
+                    if (!playerId.equals(dto.data().get("playerId"))) return;
                 }
+                case "PRISON_ESCAPE_WARNING" -> {
+                    if (!"POLICE".equals(playerRole)) return;
+                }
+                case "PING_ALERT" -> {
+                    if (playerRole == null) return;
+                    var pingTypeStr = dto.data().get("pingType");
+                    if (pingTypeStr != null) {
+                        try {
+                            if (!PingType.valueOf(pingTypeStr).role().name().equals(playerRole)) return;
+                        } catch (IllegalArgumentException ignored) {}
+                    }
+                }
+                default -> { /* 나머지 이벤트는 전체 수신 */ }
             }
             onEvent.accept(GameEventMapper.toDomain(dto));
         });

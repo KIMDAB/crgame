@@ -100,6 +100,7 @@ public record GameEventResponse(
                 Map.of(
                     "senderId", e.senderId(),
                     "pingType", e.pingType(),
+                    "targetRole", e.targetRole(),
                     "latitude", String.valueOf(e.latitude()),
                     "longitude", String.valueOf(e.longitude())
                 ),

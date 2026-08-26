@@ -351,6 +351,7 @@ public class GameActionService {
                 command.gameId(),
                 command.senderId(),
                 command.pingType().name(),
+                command.pingType().role().name(),
                 command.latitude(),
                 command.longitude(),
                 System.currentTimeMillis()

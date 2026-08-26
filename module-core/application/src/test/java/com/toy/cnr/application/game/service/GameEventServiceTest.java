@@ -157,6 +157,96 @@ class GameEventServiceTest {
         }
 
         @Test
+        @DisplayName("[성공] ROLE_ASSIGNED — 본인 playerId와 일치하는 이벤트는 전달됨")
+        void subscribe_roleAssigned_ownPlayer_delivered() {
+            when(inGamePlayerStore.getPlayer(GAME_ID, PLAYER_ID))
+                .thenReturn(new RepositoryResult.Found<>(playerDto(PlayerRole.POLICE)));
+
+            @SuppressWarnings("unchecked")
+            var consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
+            when(subscriber.subscribe(eq(GAME_ID), consumerCaptor.capture())).thenReturn("sub-001");
+
+            AtomicReference<GameEvent> received = new AtomicReference<>();
+            gameEventService.subscribe(GAME_ID, PLAYER_ID, received::set);
+
+            var dto = new GameEventDto(GAME_ID, "ROLE_ASSIGNED",
+                Map.of("playerId", PLAYER_ID, "role", "POLICE"),
+                TIMESTAMP);
+            //noinspection unchecked
+            consumerCaptor.getValue().accept(dto);
+
+            assertNotNull(received.get());
+            assertInstanceOf(GameEvent.RoleAssigned.class, received.get());
+        }
+
+        @Test
+        @DisplayName("[성공] ROLE_ASSIGNED — 타인의 playerId는 차단됨")
+        void subscribe_roleAssigned_otherPlayer_blocked() {
+            when(inGamePlayerStore.getPlayer(GAME_ID, PLAYER_ID))
+                .thenReturn(new RepositoryResult.Found<>(playerDto(PlayerRole.POLICE)));
+
+            @SuppressWarnings("unchecked")
+            var consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
+            when(subscriber.subscribe(eq(GAME_ID), consumerCaptor.capture())).thenReturn("sub-001");
+
+            AtomicReference<GameEvent> received = new AtomicReference<>();
+            gameEventService.subscribe(GAME_ID, PLAYER_ID, received::set);
+
+            var dto = new GameEventDto(GAME_ID, "ROLE_ASSIGNED",
+                Map.of("playerId", "other-player", "role", "THIEF"),
+                TIMESTAMP);
+            //noinspection unchecked
+            consumerCaptor.getValue().accept(dto);
+
+            assertNull(received.get());
+        }
+
+        @Test
+        @DisplayName("[성공] PRISON_ESCAPE_WARNING — POLICE 구독자에게 전달됨")
+        void subscribe_prisonEscapeWarning_police_delivered() {
+            when(inGamePlayerStore.getPlayer(GAME_ID, PLAYER_ID))
+                .thenReturn(new RepositoryResult.Found<>(playerDto(PlayerRole.POLICE)));
+
+            @SuppressWarnings("unchecked")
+            var consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
+            when(subscriber.subscribe(eq(GAME_ID), consumerCaptor.capture())).thenReturn("sub-001");
+
+            AtomicReference<GameEvent> received = new AtomicReference<>();
+            gameEventService.subscribe(GAME_ID, PLAYER_ID, received::set);
+
+            var dto = new GameEventDto(GAME_ID, "PRISON_ESCAPE_WARNING",
+                Map.of("playerId", "robber-1"),
+                TIMESTAMP);
+            //noinspection unchecked
+            consumerCaptor.getValue().accept(dto);
+
+            assertNotNull(received.get());
+            assertInstanceOf(GameEvent.PrisonEscapeWarning.class, received.get());
+        }
+
+        @Test
+        @DisplayName("[성공] PRISON_ESCAPE_WARNING — THIEF 구독자에게는 차단됨")
+        void subscribe_prisonEscapeWarning_thief_blocked() {
+            when(inGamePlayerStore.getPlayer(GAME_ID, PLAYER_ID))
+                .thenReturn(new RepositoryResult.Found<>(playerDto(PlayerRole.THIEF)));
+
+            @SuppressWarnings("unchecked")
+            var consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
+            when(subscriber.subscribe(eq(GAME_ID), consumerCaptor.capture())).thenReturn("sub-001");
+
+            AtomicReference<GameEvent> received = new AtomicReference<>();
+            gameEventService.subscribe(GAME_ID, PLAYER_ID, received::set);
+
+            var dto = new GameEventDto(GAME_ID, "PRISON_ESCAPE_WARNING",
+                Map.of("playerId", "robber-1"),
+                TIMESTAMP);
+            //noinspection unchecked
+            consumerCaptor.getValue().accept(dto);
+
+            assertNull(received.get());
+        }
+
+        @Test
         @DisplayName("[성공] PING_ALERT — 구독자와 같은 role의 핑은 전달됨")
         void subscribe_pingAlert_sameRole_delivered() {
             when(inGamePlayerStore.getPlayer(GAME_ID, PLAYER_ID))
@@ -171,7 +261,7 @@ class GameEventServiceTest {
 
             var dto = new GameEventDto(GAME_ID, "PING_ALERT",
                 Map.of("senderId", "cops-1", "pingType", "POLICE_GATHER",
-                    "latitude", "37.5", "longitude", "127.0"),
+                    "targetRole", "POLICE", "latitude", "37.5", "longitude", "127.0"),
                 TIMESTAMP);
             //noinspection unchecked
             consumerCaptor.getValue().accept(dto);
@@ -195,7 +285,7 @@ class GameEventServiceTest {
 
             var dto = new GameEventDto(GAME_ID, "PING_ALERT",
                 Map.of("senderId", "robber-1", "pingType", "THIEF_DANGER",
-                    "latitude", "37.5", "longitude", "127.0"),
+                    "targetRole", "THIEF", "latitude", "37.5", "longitude", "127.0"),
                 TIMESTAMP);
             //noinspection unchecked
             consumerCaptor.getValue().accept(dto);
